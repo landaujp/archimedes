@@ -4,13 +4,14 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
-	"github.com/BurntSushi/toml"
-	_ "github.com/go-sql-driver/mysql"
 	"net/http"
-	"strconv"
-	"time"
 	"os"
 	"path/filepath"
+	"strconv"
+	"time"
+
+	"github.com/BurntSushi/toml"
+	_ "github.com/go-sql-driver/mysql"
 )
 
 type Config struct {
@@ -28,8 +29,8 @@ type Jsondata struct {
 
 func main() {
 	var config Config
-	cur,err := os.Executable()
-	fmt.Println(filepath.Dir(cur)+"/config.toml")
+	cur, err := os.Executable()
+	fmt.Println(filepath.Dir(cur) + "/config.toml")
 	_, err = toml.DecodeFile(filepath.Dir(cur)+"/config.toml", &config)
 	if err != nil {
 		// Error Handling
