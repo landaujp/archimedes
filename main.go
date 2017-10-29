@@ -9,6 +9,8 @@ import (
 	"net/http"
 	"strconv"
 	"time"
+	"os"
+	"path/filepath"
 )
 
 type Config struct {
@@ -26,7 +28,9 @@ type Jsondata struct {
 
 func main() {
 	var config Config
-	_, err := toml.DecodeFile("config.toml", &config)
+	cur,err := os.Executable()
+	fmt.Println(filepath.Dir(cur)+"/config.toml")
+	_, err = toml.DecodeFile(filepath.Dir(cur)+"/config.toml", &config)
 	if err != nil {
 		// Error Handling
 	}
