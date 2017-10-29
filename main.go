@@ -44,27 +44,33 @@ func main() {
 
 	cc := "https://coincheck.com/api/ticker"
 
+	var Etag string
 	for {
-		resp, err := http.Get(cc)
+		req, _ := http.NewRequest("GET", cc, nil)
+		req.Header.Set("if-none-match", Etag)
+		client := new(http.Client)
+		resp, err := client.Do(req)
 
 		if err != nil {
 			fmt.Println(err)
 			return
 		}
 		if resp.StatusCode != 200 {
+			time.Sleep(2 * time.Second) // 2秒待つ
 			continue
 		}
+		Etag = resp.Header["Etag"][0]
 
 		data := Jsondata{}
 		if err := json.NewDecoder(resp.Body).Decode(&data); err != nil {
 			panic(err)
 		}
-		_, err = db.Exec("INSERT INTO coincheck (last,created_at) VALUES (?,?)", data.Last, time.Now())
+		_, err = db.Exec("INSERT INTO coincheck (last,timestamp,created_at) VALUES (?,?,?)", data.Last, data.Timestamp, time.Now())
 		if err != nil {
 			panic(err.Error())
 		}
 		resp.Body.Close()
 
-		time.Sleep(1 * time.Second) // 1秒待つ
+		time.Sleep(2 * time.Second) // 2秒待つ
 	}
 }
