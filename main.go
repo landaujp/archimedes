@@ -30,8 +30,9 @@ type Jsondata struct {
 func main() {
 	var config Config
 	cur, err := os.Executable()
-	fmt.Println(filepath.Dir(cur) + "/config.toml")
-	_, err = toml.DecodeFile(filepath.Dir(cur)+"/config.toml", &config)
+	fmt.Println(filepath.Join(filepath.Dir(cur), "config.toml"))
+	_, err = toml.DecodeFile(filepath.Join(filepath.Dir(cur), "config.toml"), &config)
+	// _, err = toml.DecodeFile("config.toml", &config)
 	if err != nil {
 		// Error Handling
 	}
