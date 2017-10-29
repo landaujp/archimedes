@@ -1,4 +1,4 @@
 [DB]
-user			= "dbuser"
-password  = "dbpassword"
-port			= 3307
+user     = "dbuser"
+password = "dbpassword"
+port     = 3307
