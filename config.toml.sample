@@ -1,0 +1,4 @@
+[DB]
+user			= "dbuser"
+password  = "dbpassword"
+port			= 3307

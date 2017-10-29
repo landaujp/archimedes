@@ -5,9 +5,18 @@ import (
 	"time"
 	"net/http"
 	"encoding/json"
+	"strconv"
 	"database/sql"
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/BurntSushi/toml"
 )
+type Config struct {
+    DB struct {
+    	User string
+    	Password string
+    	Port int
+    }
+}
 
 type Jsondata struct {
 	Last, Bid, Ask, High, Low, Volume float32
@@ -15,11 +24,16 @@ type Jsondata struct {
 }
 
 func main() {
-	db, err := sql.Open("mysql", "root:@tcp(127.0.0.1:3306)/market")
+	var config Config
+	_, err := toml.DecodeFile("config.toml", &config)
+	if err != nil {
+	    // Error Handling
+	}
+	db, err := sql.Open("mysql", config.DB.User+":"+config.DB.Password+"@tcp(127.0.0.1:"+strconv.Itoa(config.DB.Port)+")/market")
 	if err != nil {
 		panic(err.Error())
 	}
-	defer db.Close() // 関数がリターンする直前に呼び出される
+	defer db.Close()
 
 	cc := "https://coincheck.com/api/ticker"
 
@@ -30,12 +44,15 @@ func main() {
 			fmt.Println(err)
 			return
 		}
+		if resp.StatusCode != 200 {
+			continue;
+		}
 
 		data := Jsondata{}
 		if err := json.NewDecoder(resp.Body).Decode(&data); err != nil {
 			panic(err)
 		}
-		_, err = db.Exec("INSERT INTO coincheck (last) VALUES (?)", data.Last)
+		_, err = db.Exec("INSERT INTO coincheck (last,created_at) VALUES (?,?)", data.Last,time.Now())
 		if err != nil {
 			panic(err.Error())
 		}
