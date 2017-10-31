@@ -5,14 +5,14 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"os"
-	"path/filepath"
 	"strconv"
 	"time"
 
 	"github.com/BurntSushi/toml"
 	_ "github.com/go-sql-driver/mysql"
 )
+
+//go:generate go-bindata ./data
 
 type Config struct {
 	DB struct {
@@ -29,13 +29,12 @@ type Jsondata struct {
 
 func main() {
 	var config Config
-	cur, err := os.Executable()
-	fmt.Println(filepath.Join(filepath.Dir(cur), "config.toml"))
-	_, err = toml.DecodeFile(filepath.Join(filepath.Dir(cur), "config.toml"), &config)
-	// _, err = toml.DecodeFile("config.toml", &config)
+	data, err := Asset("config.toml")
+	_, err = toml.Decode(string(data), &config)
 	if err != nil {
-		// Error Handling
+		panic(err)
 	}
+
 	db, err := sql.Open("mysql", config.DB.User+":"+config.DB.Password+"@tcp(127.0.0.1:"+strconv.Itoa(config.DB.Port)+")/market")
 	if err != nil {
 		panic(err.Error())
