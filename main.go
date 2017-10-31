@@ -12,7 +12,7 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 )
 
-//go:generate go-bindata ./data
+//go:generate go-bindata config.toml
 
 type Config struct {
 	DB struct {
