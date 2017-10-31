@@ -45,6 +45,8 @@ func main() {
 
 	var Etag string
 	for {
+		time.Sleep(2 * time.Second) // 2秒待つ
+
 		req, _ := http.NewRequest("GET", cc, nil)
 		req.Header.Set("if-none-match", Etag)
 		client := new(http.Client)
@@ -55,7 +57,6 @@ func main() {
 			return
 		}
 		if resp.StatusCode != 200 {
-			time.Sleep(2 * time.Second) // 2秒待つ
 			continue
 		}
 		Etag = resp.Header["Etag"][0]
@@ -69,7 +70,5 @@ func main() {
 			panic(err.Error())
 		}
 		resp.Body.Close()
-
-		time.Sleep(2 * time.Second) // 2秒待つ
 	}
 }
