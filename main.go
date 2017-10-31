@@ -12,7 +12,7 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 )
 
-//go:generate go-bindata config.toml
+//go:generate go-bindata config/config.toml
 
 type Config struct {
 	DB struct {
@@ -29,7 +29,7 @@ type Jsondata struct {
 
 func main() {
 	var config Config
-	data, err := Asset("config.toml")
+	data, err := Asset("config/config.toml")
 	_, err = toml.Decode(string(data), &config)
 	if err != nil {
 		panic(err)
