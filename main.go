@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"flag"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -28,10 +29,12 @@ type Config struct {
 type Exchange interface {
 	GetLast() float64
 	GetTimestamp() int64
+	SetJson(*simplejson.Json)
 }
 
 func main() {
 	var config Config
+
 	data, err := Asset("config/config.toml")
 	_, err = toml.Decode(string(data), &config)
 	if err != nil {
@@ -44,13 +47,31 @@ func main() {
 	}
 	defer db.Close()
 
-	cc := "https://coincheck.com/api/ticker"
+	flag.Parse()
+	argument := flag.Args()[0]
+	// argument := "zaif"
+
+	var url string
+	var ex Exchange
+	switch argument {
+	case "coincheck":
+		fmt.Println(argument)
+		url = "https://coincheck.com/api/ticker"
+		ex = &exchanges.Coincheck{}
+	case "zaif":
+		fmt.Println(argument)
+		url = "https://api.zaif.jp/api/1/ticker/btc_jpy"
+		ex = &exchanges.Zaif{}
+	default:
+		fmt.Println("There is no exchanges...")
+		return
+	}
 
 	var Etag string
 	for {
 		time.Sleep(2 * time.Second) // 2秒待つ
 
-		req, _ := http.NewRequest("GET", cc, nil)
+		req, _ := http.NewRequest("GET", url, nil)
 		req.Header.Set("if-none-match", Etag)
 		client := new(http.Client)
 		resp, err := client.Do(req)
@@ -66,7 +87,7 @@ func main() {
 		body, err := ioutil.ReadAll(resp.Body)
 
 		json, err := simplejson.NewJson(body)
-		var ex Exchange = &exchanges.Coincheck{Json: json}
+		ex.SetJson(json)
 		fmt.Println(ex.GetLast())
 		fmt.Println(ex.GetTimestamp())
 		// fmt.Println(reflect.TypeOf(json.Get("last").MustFloat64()))

@@ -15,3 +15,7 @@ func (c *Coincheck) GetTimestamp() int64 {
 	a := c.Json.Get("timestamp").MustInt64()
 	return a
 }
+
+func (c *Coincheck) SetJson(json *simplejson.Json) {
+	c.Json = json
+}
