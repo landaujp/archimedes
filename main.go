@@ -2,14 +2,17 @@ package main
 
 import (
 	"database/sql"
-	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net/http"
+	"os"
 	"strconv"
 	"time"
 
 	"github.com/BurntSushi/toml"
+	simplejson "github.com/bitly/go-simplejson"
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/landaujp/archimedes/exchanges"
 )
 
 //go:generate go-bindata config/config.toml
@@ -22,9 +25,9 @@ type Config struct {
 	}
 }
 
-type Jsondata struct {
-	Last, Bid, Ask, High, Low, Volume float32
-	Timestamp                         int
+type Exchange interface {
+	GetLast() float64
+	GetTimestamp() int64
 }
 
 func main() {
@@ -60,15 +63,22 @@ func main() {
 			continue
 		}
 		Etag = resp.Header["Etag"][0]
+		body, err := ioutil.ReadAll(resp.Body)
 
-		data := Jsondata{}
-		if err := json.NewDecoder(resp.Body).Decode(&data); err != nil {
-			panic(err)
-		}
-		_, err = db.Exec("INSERT INTO coincheck (last,timestamp,created_at) VALUES (?,?,?)", data.Last, data.Timestamp, time.Now())
-		if err != nil {
-			panic(err.Error())
-		}
+		json, err := simplejson.NewJson(body)
+		var ex Exchange = &exchanges.Coincheck{Json: json}
+		fmt.Println(ex.GetLast())
+		fmt.Println(ex.GetTimestamp())
+		// fmt.Println(reflect.TypeOf(json.Get("last").MustFloat64()))
+		// data := Jsondata{}
+		// if err := json.NewDecoder(resp.Body).Decode(&data); err != nil {
+		// 	panic(err)
+		// }
+		// _, err = db.Exec("INSERT INTO coincheck (last,timestamp,created_at) VALUES (?,?,?)", data.Last, data.Timestamp, time.Now())
+		// if err != nil {
+		// 	panic(err.Error())
+		// }
 		resp.Body.Close()
+		os.Exit(0)
 	}
 }
