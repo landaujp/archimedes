@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"os"
 	"strconv"
 	"time"
 
@@ -27,7 +26,7 @@ type Config struct {
 }
 
 type Exchange interface {
-	GetLast() float64
+	GetLast() int64
 	GetTimestamp() int64
 	SetJson(*simplejson.Json)
 }
@@ -35,8 +34,8 @@ type Exchange interface {
 func main() {
 	var config Config
 
-	data, err := Asset("config/config.toml")
-	_, err = toml.Decode(string(data), &config)
+	data, _ := Asset("config/config.toml")
+	_, err := toml.Decode(string(data), &config)
 	if err != nil {
 		panic(err)
 	}
@@ -49,19 +48,23 @@ func main() {
 
 	flag.Parse()
 	argument := flag.Args()[0]
-	// argument := "zaif"
 
-	var url string
 	var ex Exchange
+	var url string
+	table := argument
 	switch argument {
+	case "bitflyer":
+		ex = &exchanges.Bitflyer{}
+		url = "https://api.bitflyer.jp/v1/ticker?product_code=BTC_JPY"
 	case "coincheck":
-		fmt.Println(argument)
-		url = "https://coincheck.com/api/ticker"
 		ex = &exchanges.Coincheck{}
+		url = "https://coincheck.com/api/ticker"
 	case "zaif":
-		fmt.Println(argument)
-		url = "https://api.zaif.jp/api/1/ticker/btc_jpy"
 		ex = &exchanges.Zaif{}
+		url = "https://api.zaif.jp/api/1/ticker/btc_jpy"
+	case "bitbank":
+		ex = &exchanges.Bitbank{}
+		url = "https://public.bitbank.cc/btc_jpy/ticker"
 	default:
 		fmt.Println("There is no exchanges...")
 		return
@@ -75,31 +78,27 @@ func main() {
 		req.Header.Set("if-none-match", Etag)
 		client := new(http.Client)
 		resp, err := client.Do(req)
-
 		if err != nil {
 			fmt.Println(err)
 			return
 		}
+
 		if resp.StatusCode != 200 {
 			continue
 		}
-		Etag = resp.Header["Etag"][0]
-		body, err := ioutil.ReadAll(resp.Body)
 
-		json, err := simplejson.NewJson(body)
+		if val, ok := resp.Header["Etag"]; ok {
+			Etag = val[0]
+		}
+
+		body, _ := ioutil.ReadAll(resp.Body)
+		json, _ := simplejson.NewJson(body)
 		ex.SetJson(json)
-		fmt.Println(ex.GetLast())
-		fmt.Println(ex.GetTimestamp())
-		// fmt.Println(reflect.TypeOf(json.Get("last").MustFloat64()))
-		// data := Jsondata{}
-		// if err := json.NewDecoder(resp.Body).Decode(&data); err != nil {
-		// 	panic(err)
-		// }
-		// _, err = db.Exec("INSERT INTO coincheck (last,timestamp,created_at) VALUES (?,?,?)", data.Last, data.Timestamp, time.Now())
-		// if err != nil {
-		// 	panic(err.Error())
-		// }
+		_, err = db.Exec("INSERT INTO "+table+" (last,timestamp,created_at) VALUES (?,?,?)", ex.GetLast(), ex.GetTimestamp(), time.Now())
+		if err != nil {
+			panic(err.Error())
+		}
+
 		resp.Body.Close()
-		os.Exit(0)
 	}
 }

@@ -6,9 +6,9 @@ type Coincheck struct {
 	Json *simplejson.Json
 }
 
-func (c *Coincheck) GetLast() float64 {
+func (c *Coincheck) GetLast() int64 {
 	a := c.Json.Get("last").MustFloat64()
-	return a
+	return int64(a)
 }
 
 func (c *Coincheck) GetTimestamp() int64 {
