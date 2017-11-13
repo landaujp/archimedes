@@ -65,6 +65,18 @@ func main() {
 	case "bitbank":
 		ex = &exchanges.Bitbank{}
 		url = "https://public.bitbank.cc/btc_jpy/ticker"
+	case "kraken":
+		ex = &exchanges.Kraken{}
+		url = "https://api.kraken.com/0/public/Ticker?pair=XBTJPY"
+	case "quoine":
+		ex = &exchanges.Quoine{}
+		url = "https://api.quoine.com/products/5"
+	case "btcbox":
+		ex = &exchanges.Btcbox{}
+		url = "https://www.btcbox.co.jp/api/v1/ticker/"
+	case "fisco":
+		ex = &exchanges.Fisco{}
+		url = "https://api.fcce.jp/api/1/ticker/btc_jpy"
 	default:
 		fmt.Println("There is no exchanges...")
 		return
@@ -95,6 +107,10 @@ func main() {
 		json, _ := simplejson.NewJson(body)
 		ex.SetJson(json)
 		_, err = db.Exec("INSERT INTO "+table+" (last,timestamp,created_at) VALUES (?,?,?)", ex.GetLast(), ex.GetTimestamp(), time.Now())
+		if err != nil {
+			panic(err.Error())
+		}
+		_, err = db.Exec("INSERT INTO last (exchange,last,timestamp,created_at) VALUES (?,?,?,?) ON DUPLICATE KEY UPDATE last = ?,timestamp = ?, created_at = ?", table, ex.GetLast(), ex.GetTimestamp(), time.Now(), ex.GetLast(), ex.GetTimestamp(), time.Now())
 		if err != nil {
 			panic(err.Error())
 		}

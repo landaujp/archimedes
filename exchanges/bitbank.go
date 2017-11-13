@@ -18,7 +18,8 @@ func (b *Bitbank) GetLast() int64 {
 
 func (b *Bitbank) GetTimestamp() int64 {
 	a := b.Json.Get("data").Get("timestamp").MustInt64()
-	return a
+	t := a / 1000
+	return t
 }
 
 func (b *Bitbank) SetJson(json *simplejson.Json) {
