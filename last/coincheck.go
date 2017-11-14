@@ -1,4 +1,4 @@
-package exchanges
+package last
 
 import simplejson "github.com/bitly/go-simplejson"
 

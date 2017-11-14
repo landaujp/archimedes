@@ -12,7 +12,7 @@ import (
 	"github.com/BurntSushi/toml"
 	simplejson "github.com/bitly/go-simplejson"
 	_ "github.com/go-sql-driver/mysql"
-	"github.com/landaujp/archimedes/exchanges"
+	"github.com/landaujp/archimedes/last"
 )
 
 //go:generate go-bindata config/config.toml
@@ -54,17 +54,29 @@ func main() {
 	table := argument
 	switch argument {
 	case "bitflyer":
-		ex = &exchanges.Bitflyer{}
+		ex = &last.Bitflyer{}
 		url = "https://api.bitflyer.jp/v1/ticker?product_code=BTC_JPY"
 	case "coincheck":
-		ex = &exchanges.Coincheck{}
+		ex = &last.Coincheck{}
 		url = "https://coincheck.com/api/ticker"
 	case "zaif":
-		ex = &exchanges.Zaif{}
+		ex = &last.Zaif{}
 		url = "https://api.zaif.jp/api/1/ticker/btc_jpy"
 	case "bitbank":
-		ex = &exchanges.Bitbank{}
+		ex = &last.Bitbank{}
 		url = "https://public.bitbank.cc/btc_jpy/ticker"
+	case "kraken":
+		ex = &last.Kraken{}
+		url = "https://api.kraken.com/0/public/Ticker?pair=XBTJPY"
+	case "quoine":
+		ex = &last.Quoine{}
+		url = "https://api.quoine.com/products/5"
+	case "btcbox":
+		ex = &last.Btcbox{}
+		url = "https://www.btcbox.co.jp/api/v1/ticker/"
+	case "fisco":
+		ex = &last.Fisco{}
+		url = "https://api.fcce.jp/api/1/ticker/btc_jpy"
 	default:
 		fmt.Println("There is no exchanges...")
 		return
@@ -95,6 +107,10 @@ func main() {
 		json, _ := simplejson.NewJson(body)
 		ex.SetJson(json)
 		_, err = db.Exec("INSERT INTO "+table+" (last,timestamp,created_at) VALUES (?,?,?)", ex.GetLast(), ex.GetTimestamp(), time.Now())
+		if err != nil {
+			panic(err.Error())
+		}
+		_, err = db.Exec("INSERT INTO last (exchange,last,timestamp,created_at) VALUES (?,?,?,?) ON DUPLICATE KEY UPDATE last = ?,timestamp = ?, created_at = ?", table, ex.GetLast(), ex.GetTimestamp(), time.Now(), ex.GetLast(), ex.GetTimestamp(), time.Now())
 		if err != nil {
 			panic(err.Error())
 		}
