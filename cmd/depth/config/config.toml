@@ -1,4 +1,4 @@
 [DB]
 user     = "root"
-password = ""
-port     = 3306
+password = "mysql"
+port     = 3307
