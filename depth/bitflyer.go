@@ -1,28 +1,96 @@
 package depth
 
 import (
-	"strings"
-	"time"
+	"encoding/json"
+	"sort"
 
 	simplejson "github.com/bitly/go-simplejson"
 )
 
 type Bitflyer struct {
-	Json *simplejson.Json
+	SimpleJson *simplejson.Json
 }
 
-func (b *Bitflyer) GetDepth() int64 {
-	a := b.Json.Get("ltp").MustFloat64()
-	return int64(a)
+func (c *Bitflyer) GetDepth() string {
+
+	type Pair struct {
+		Price int     `json:"price"`
+		Size  float64 `json:"size"`
+	}
+
+	type SaveJson struct {
+		Bids []Pair `json:"bids"`
+		Asks []Pair `json:"asks"`
+	}
+
+	/*
+	 * bid
+	 */
+	bids, _ := c.SimpleJson.Get("bids").Array()
+
+	map_bids := make(map[int]float64)
+
+	for _, arr := range bids {
+		v := arr.(map[string]interface{})
+		v1 := v["price"].(json.Number)
+		v2 := v["size"].(json.Number)
+		vv1_64, _ := v1.Float64()
+		vv1 := int(vv1_64)
+		vv2, _ := v2.Float64()
+		map_bids[vv1] = vv2
+	}
+
+	// sort desc
+	var keys []int
+	for k := range map_bids {
+		keys = append(keys, k)
+	}
+	sort.Sort(sort.Reverse(sort.IntSlice(keys)))
+	keys = keys[0:10]
+
+	var res_bids []Pair
+
+	for _, s := range keys {
+		res_bids = append(res_bids, Pair{s, map_bids[s]})
+	}
+
+	/*
+	 * ask
+	 */
+	asks, _ := c.SimpleJson.Get("asks").Array()
+
+	map_asks := make(map[int]float64)
+
+	for _, arr := range asks {
+		v := arr.(map[string]interface{})
+		v1 := v["price"].(json.Number)
+		v2 := v["size"].(json.Number)
+		vv1_64, _ := v1.Float64()
+		vv1 := int(vv1_64)
+		vv2, _ := v2.Float64()
+		map_asks[vv1] = vv2
+	}
+	// sort desc
+	var a_keys []int
+	for k := range map_asks {
+		a_keys = append(a_keys, k)
+	}
+	sort.Ints(a_keys)
+	a_keys = a_keys[0:10]
+	sort.Sort(sort.Reverse(sort.IntSlice(a_keys)))
+
+	var res_asks []Pair
+
+	for _, s := range a_keys {
+		res_asks = append(res_asks, Pair{s, map_asks[s]})
+	}
+
+	saveJson := SaveJson{res_bids, res_asks}
+	outputJson, _ := json.Marshal(saveJson)
+
+	return string(outputJson)
 }
 
-func (b *Bitflyer) GetTimestamp() int64 {
-	timestamp, _ := b.Json.Get("timestamp").String()
-	datetime := strings.Split(timestamp, ".")[0]
-	t, _ := time.Parse("2006-01-02T15:04:05", datetime)
-	return t.Unix()
-}
-
-func (b *Bitflyer) SetJson(json *simplejson.Json) {
-	b.Json = json
+func (c *Bitflyer) SetJson(json *simplejson.Json) {
+	c.SimpleJson = json
 }

@@ -1,27 +1,96 @@
 package depth
 
 import (
+	"encoding/json"
+	"sort"
 	"strconv"
+	"strings"
 
 	simplejson "github.com/bitly/go-simplejson"
 )
 
 type Bitbank struct {
-	Json *simplejson.Json
+	SimpleJson *simplejson.Json
 }
 
-func (b *Bitbank) GetDepth() int64 {
-	a := b.Json.Get("data").Get("last").MustString()
-	res, _ := strconv.ParseInt(a, 10, 64)
-	return res
+func (c *Bitbank) GetDepth() string {
+
+	type Pair struct {
+		Price int     `json:"price"`
+		Size  float64 `json:"size"`
+	}
+
+	type SaveJson struct {
+		Bids []Pair `json:"bids"`
+		Asks []Pair `json:"asks"`
+	}
+
+	/*
+	 * bid
+	 */
+	bids, _ := c.SimpleJson.Get("data").Get("bids").Array()
+
+	map_bids := make(map[int]float64)
+
+	for _, arr := range bids {
+		v := arr.([]interface{})
+		v1 := strings.Split(v[0].(string), ".")[0]
+		v2 := v[1].(string)
+		vv1, _ := strconv.Atoi(v1)
+		vv2, _ := strconv.ParseFloat(v2, 64)
+		map_bids[vv1] = vv2
+	}
+
+	// sort desc
+	var keys []int
+	for k := range map_bids {
+		keys = append(keys, k)
+	}
+	sort.Sort(sort.Reverse(sort.IntSlice(keys)))
+	keys = keys[0:10]
+
+	var res_bids []Pair
+
+	for _, s := range keys {
+		res_bids = append(res_bids, Pair{s, map_bids[s]})
+	}
+
+	/*
+	 * ask
+	 */
+	asks, _ := c.SimpleJson.Get("data").Get("asks").Array()
+
+	map_asks := make(map[int]float64)
+
+	for _, arr := range asks {
+		v := arr.([]interface{})
+		v1 := strings.Split(v[0].(string), ".")[0]
+		v2 := v[1].(string)
+		vv1, _ := strconv.Atoi(v1)
+		vv2, _ := strconv.ParseFloat(v2, 64)
+		map_asks[vv1] = vv2
+	}
+	// sort desc
+	var a_keys []int
+	for k := range map_asks {
+		a_keys = append(a_keys, k)
+	}
+	sort.Ints(a_keys)
+	a_keys = a_keys[0:10]
+	sort.Sort(sort.Reverse(sort.IntSlice(a_keys)))
+
+	var res_asks []Pair
+
+	for _, s := range a_keys {
+		res_asks = append(res_asks, Pair{s, map_asks[s]})
+	}
+
+	saveJson := SaveJson{res_bids, res_asks}
+	outputJson, _ := json.Marshal(saveJson)
+
+	return string(outputJson)
 }
 
-func (b *Bitbank) GetTimestamp() int64 {
-	a := b.Json.Get("data").Get("timestamp").MustInt64()
-	t := a / 1000
-	return t
-}
-
-func (b *Bitbank) SetJson(json *simplejson.Json) {
-	b.Json = json
+func (c *Bitbank) SetJson(json *simplejson.Json) {
+	c.SimpleJson = json
 }

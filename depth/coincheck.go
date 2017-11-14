@@ -14,7 +14,6 @@ type Coincheck struct {
 }
 
 func (c *Coincheck) GetDepth() string {
-	// asks := json.Get("asks").MustArray()
 
 	type Pair struct {
 		Price int     `json:"price"`

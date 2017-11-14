@@ -51,22 +51,29 @@ func main() {
 	var url string
 	switch argument {
 	case "bitflyer":
+		ex = &depth.Bitflyer{}
 		url = "https://api.bitflyer.jp/v1/getboard"
 	case "coincheck":
 		ex = &depth.Coincheck{}
 		url = "https://coincheck.com/api/order_books"
 	case "zaif":
-		url = "https://api.zaif.jp/api/1/ticker/btc_jpy"
+		ex = &depth.Zaif{}
+		url = "https://api.zaif.jp/api/1/depth/btc_jpy"
 	case "bitbank":
-		url = "https://public.bitbank.cc/btc_jpy/ticker"
+		ex = &depth.Bitbank{}
+		url = "https://public.bitbank.cc/btc_jpy/depth"
 	case "kraken":
-		url = "https://api.kraken.com/0/public/Ticker?pair=XBTJPY"
+		ex = &depth.Kraken{}
+		url = "https://api.kraken.com/0/public/Depth?pair=XBTJPY"
 	case "quoine":
-		url = "https://api.quoine.com/products/5"
+		ex = &depth.Quoine{}
+		url = "https://api.quoine.com/products/5/price_levels"
 	case "btcbox":
-		url = "https://www.btcbox.co.jp/api/v1/ticker/"
+		ex = &depth.Btcbox{}
+		url = "https://www.btcbox.co.jp/api/v1/depth/"
 	case "fisco":
-		url = "https://api.fcce.jp/api/1/ticker/btc_jpy"
+		ex = &depth.Fisco{}
+		url = "https://api.fcce.jp/api/1/depth/btc_jpy"
 	default:
 		fmt.Println("There is no exchanges...")
 		return
