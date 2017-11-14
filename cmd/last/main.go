@@ -110,7 +110,7 @@ func main() {
 		if err != nil {
 			panic(err.Error())
 		}
-		_, err = db.Exec("INSERT INTO last (exchange,last,timestamp,created_at) VALUES (?,?,?,?) ON DUPLICATE KEY UPDATE last = ?,timestamp = ?, created_at = ?", table, ex.GetLast(), ex.GetTimestamp(), time.Now(), ex.GetLast(), ex.GetTimestamp(), time.Now())
+		_, err = db.Exec("INSERT INTO market (exchange,last,timestamp,created_at) VALUES (?,?,?,?) ON DUPLICATE KEY UPDATE last = ?,timestamp = ?, created_at = ?", table, ex.GetLast(), ex.GetTimestamp(), time.Now(), ex.GetLast(), ex.GetTimestamp(), time.Now())
 		if err != nil {
 			panic(err.Error())
 		}
