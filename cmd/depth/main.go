@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/BurntSushi/toml"
 	simplejson "github.com/bitly/go-simplejson"
@@ -81,7 +82,7 @@ func main() {
 
 	var Etag string
 	for {
-		// time.Sleep(2 * time.Second) // 2秒待つ
+		time.Sleep(2 * time.Second) // 2秒待つ
 
 		req, _ := http.NewRequest("GET", url, nil)
 		req.Header.Set("if-none-match", Etag)
@@ -108,40 +109,6 @@ func main() {
 		if err != nil {
 			panic(err.Error())
 		}
-		break
-
-		// // asks := json.Get("asks").MustArray()
-		// bids, _ := jsonObj.Get("bids").Array()
-
-		// sort_bids := make(map[int]float64)
-
-		// for _, arr := range bids {
-		// 	v := arr.([]interface{})
-		// 	v1 := strings.Split(v[0].(string), ".")[0]
-		// 	v2 := v[1].(string)
-		// 	vv1, _ := strconv.Atoi(v1)
-		// 	vv2, _ := strconv.ParseFloat(v2, 64)
-		// 	sort_bids[vv1] = vv2
-		// }
-		// // sort desc
-		// var keys []int
-		// for k := range sort_bids {
-		// 	keys = append(keys, k)
-		// }
-		// sort.Sort(sort.Reverse(sort.IntSlice(keys)))
-		// keys = keys[len(keys)-10:]
-
-		// type Pair struct {
-		// 	Price int     `json:"price"`
-		// 	Size  float64 `json:"size"`
-		// }
-		// var res_bids []Pair
-
-		// for _, s := range keys {
-		// 	res_bids = append(res_bids, Pair{s, sort_bids[s]})
-		// }
-		// outputJson, err := json.Marshal(res_bids)
-		// fmt.Println(string(outputJson))
 		resp.Body.Close()
 	}
 }
