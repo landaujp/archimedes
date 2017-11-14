@@ -1,29 +1,14 @@
 package main
 
 import (
-	"database/sql"
 	"flag"
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"strconv"
-	"time"
+	"reflect"
 
-	"github.com/BurntSushi/toml"
 	simplejson "github.com/bitly/go-simplejson"
-	_ "github.com/go-sql-driver/mysql"
-	"github.com/landaujp/archimedes/exchanges"
 )
-
-//go:generate go-bindata config/config.toml
-
-type Config struct {
-	DB struct {
-		User     string
-		Password string
-		Port     int
-	}
-}
 
 type Exchange interface {
 	GetLast() int64
@@ -32,73 +17,64 @@ type Exchange interface {
 }
 
 func main() {
-	var config Config
-
-	data, _ := Asset("config/config.toml")
-	_, err := toml.Decode(string(data), &config)
-	if err != nil {
-		panic(err)
-	}
-
-	db, err := sql.Open("mysql", config.DB.User+":"+config.DB.Password+"@tcp(127.0.0.1:"+strconv.Itoa(config.DB.Port)+")/market?parseTime=true&loc=Asia%2FTokyo")
-	if err != nil {
-		panic(err.Error())
-	}
-	defer db.Close()
-
 	flag.Parse()
 	argument := flag.Args()[0]
 
-	var ex Exchange
 	var url string
-	table := argument
 	switch argument {
 	case "bitflyer":
-		ex = &exchanges.Bitflyer{}
-		url = "https://api.bitflyer.jp/v1/ticker?product_code=BTC_JPY"
+		url = "https://api.bitflyer.jp/v1/getboard"
 	case "coincheck":
-		ex = &exchanges.Coincheck{}
-		url = "https://coincheck.com/api/ticker"
+		url = "https://coincheck.com/api/order_books"
 	case "zaif":
-		ex = &exchanges.Zaif{}
 		url = "https://api.zaif.jp/api/1/ticker/btc_jpy"
 	case "bitbank":
-		ex = &exchanges.Bitbank{}
 		url = "https://public.bitbank.cc/btc_jpy/ticker"
+	case "kraken":
+		url = "https://api.kraken.com/0/public/Ticker?pair=XBTJPY"
+	case "quoine":
+		url = "https://api.quoine.com/products/5"
+	case "btcbox":
+		url = "https://www.btcbox.co.jp/api/v1/ticker/"
+	case "fisco":
+		url = "https://api.fcce.jp/api/1/ticker/btc_jpy"
 	default:
 		fmt.Println("There is no exchanges...")
 		return
 	}
 
 	var Etag string
-	for {
-		time.Sleep(2 * time.Second) // 2秒待つ
+	// for {
+	// time.Sleep(2 * time.Second) // 2秒待つ
 
-		req, _ := http.NewRequest("GET", url, nil)
-		req.Header.Set("if-none-match", Etag)
-		client := new(http.Client)
-		resp, err := client.Do(req)
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
-
-		if resp.StatusCode != 200 {
-			continue
-		}
-
-		if val, ok := resp.Header["Etag"]; ok {
-			Etag = val[0]
-		}
-
-		body, _ := ioutil.ReadAll(resp.Body)
-		json, _ := simplejson.NewJson(body)
-		ex.SetJson(json)
-		_, err = db.Exec("INSERT INTO "+table+" (last,timestamp,created_at) VALUES (?,?,?)", ex.GetLast(), ex.GetTimestamp(), time.Now())
-		if err != nil {
-			panic(err.Error())
-		}
-
-		resp.Body.Close()
+	req, _ := http.NewRequest("GET", url, nil)
+	req.Header.Set("if-none-match", Etag)
+	client := new(http.Client)
+	resp, err := client.Do(req)
+	if err != nil {
+		fmt.Println(err)
+		return
 	}
+
+	if resp.StatusCode != 200 {
+		// continue
+	}
+
+	if val, ok := resp.Header["Etag"]; ok {
+		Etag = val[0]
+	}
+
+	body, _ := ioutil.ReadAll(resp.Body)
+	json, _ := simplejson.NewJson(body)
+	// fmt.Println(json)
+	// asks := json.Get("asks").MustArray()
+	bids := json.Get("bids").MustArray()
+	fmt.Println(reflect.TypeOf(bids))
+	fmt.Println(bids)
+
+	// jsonString, err := json.Marshal(bids)
+	// fmt.Println(jsonString)
+
+	resp.Body.Close()
+	// }
 }
