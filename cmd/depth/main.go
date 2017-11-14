@@ -1,11 +1,14 @@
 package main
 
 import (
+	"encoding/json"
 	"flag"
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"reflect"
+	"sort"
+	"strconv"
+	"strings"
 
 	simplejson "github.com/bitly/go-simplejson"
 )
@@ -65,16 +68,39 @@ func main() {
 	}
 
 	body, _ := ioutil.ReadAll(resp.Body)
-	json, _ := simplejson.NewJson(body)
-	// fmt.Println(json)
+	jsonObj, _ := simplejson.NewJson(body)
 	// asks := json.Get("asks").MustArray()
-	bids := json.Get("bids").MustArray()
-	fmt.Println(reflect.TypeOf(bids))
-	fmt.Println(bids)
+	bids, _ := jsonObj.Get("bids").Array()
 
-	// jsonString, err := json.Marshal(bids)
-	// fmt.Println(jsonString)
+	sort_bids := make(map[int]float64)
 
+	for _, arr := range bids {
+		v := arr.([]interface{})
+		v1 := strings.Split(v[0].(string), ".")[0]
+		v2 := v[1].(string)
+		vv1, _ := strconv.Atoi(v1)
+		vv2, _ := strconv.ParseFloat(v2, 64)
+		sort_bids[vv1] = vv2
+	}
+	// sort desc
+	var keys []int
+	for k := range sort_bids {
+		keys = append(keys, k)
+	}
+	sort.Sort(sort.Reverse(sort.IntSlice(keys)))
+	keys = keys[len(keys)-10:]
+
+	type Pair struct {
+		Price int     `json:"price"`
+		Size  float64 `json:"size"`
+	}
+	var res_bids []Pair
+
+	for _, s := range keys {
+		res_bids = append(res_bids, Pair{s, sort_bids[s]})
+	}
+	outputJson, err := json.Marshal(res_bids)
+	fmt.Println(string(outputJson))
 	resp.Body.Close()
 	// }
 }
