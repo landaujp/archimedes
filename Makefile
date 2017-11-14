@@ -38,8 +38,8 @@ fmt: setup
 	goimports -w $$(glide nv -x)
 
 ## build binaries ex. make bin/archimedes
-bin/%: main.go deps
-	go generate && go build -ldflags "$(LDFLGAS)" -o $@
+bin/%: cmd/%/main.go deps
+	go generate $< && go build -ldflags "$(LDFLGAS)" -o $@ $< cmd/$*/bindata.go
 
 ## Show help
 help:
