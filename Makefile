@@ -48,8 +48,8 @@ darwin-build: cmd/last/main.go cmd/depth/main.go deps
 
 ## build binaries for Linux
 linux-build: cmd/last/main.go cmd/depth/main.go deps
-	GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go generate cmd/last/main.go  &&  go build -ldflags "$(LDFLGAS)" -o bin/linux-amd64/last  cmd/last/main.go  cmd/last/bindata.go
-	GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go generate cmd/depth/main.go &&  go build -ldflags "$(LDFLGAS)" -o bin/linux-amd64/depth cmd/depth/main.go cmd/depth/bindata.go
+	go generate cmd/last/main.go  && GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -ldflags "$(LDFLGAS)" -o bin/linux-amd64/last  cmd/last/main.go  cmd/last/bindata.go
+	go generate cmd/depth/main.go && GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -ldflags "$(LDFLGAS)" -o bin/linux-amd64/depth cmd/depth/main.go cmd/depth/bindata.go
 
 ## Show help
 help:
