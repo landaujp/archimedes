@@ -68,7 +68,7 @@ func main() {
 	defer con.Close()
 
 	for {
-		time.Sleep(5 * time.Second) // 2秒待つ
+		time.Sleep(10 * time.Second) // 2秒待つ
 
 		rows, err := db.Query("SELECT exchange1, exchange2, diff FROM alert")
 		if err != nil {
@@ -131,17 +131,17 @@ func main() {
 					notices[pair] = diff
 				}
 			}
+			if len(notices) == 0 {
+				continue
+			}
 			// Send Mail using notices(map)
 			var body string
 			for pair, diff := range notices {
 				body = body + pair + "で" + fmt.Sprint(diff*100) + "%の差があります！\n"
 			}
-			fmt.Println(body)
 
 			to := mail.Address{"あなた", val[1].(string)}
 			title := "差が発生しました！"
-
-			// body := "报表内容一切正常"
 
 			header := make(map[string]string)
 			header["From"] = from.String()
@@ -157,8 +157,6 @@ func main() {
 			}
 			message += "\r\n" + base64.StdEncoding.EncodeToString([]byte(body))
 
-			// Connect to the server, authenticate, set the sender and recipient,
-			// and send the email all in one step.
 			err := smtp.SendMail(
 				"127.0.0.1:25",
 				nil,
@@ -169,7 +167,6 @@ func main() {
 			if err != nil {
 				log.Fatal(err)
 			}
-			fmt.Println(val[1].(string) + "にメール送りました")
 		}
 	}
 }
