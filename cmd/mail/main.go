@@ -28,14 +28,6 @@ type Config struct {
 	}
 }
 
-func diffRate(a float64, b float64) float64 {
-	if a < b {
-		return (b / a) - 1
-	} else {
-		return (a / b) - 1
-	}
-}
-
 func encodeRFC2047(String string) string {
 	// use mail's rfc2047 to encode any string
 	addr := mail.Address{String, ""}
@@ -68,8 +60,6 @@ func main() {
 	defer con.Close()
 
 	for {
-		time.Sleep(10 * time.Second) // 2秒待つ
-
 		rows, err := db.Query("SELECT exchange1, exchange2, diff FROM alert")
 		if err != nil {
 			log.Fatal(err)
@@ -137,7 +127,7 @@ func main() {
 			// Send Mail using notices(map)
 			var body string
 			for pair, diff := range notices {
-				body = body + pair + "で" + fmt.Sprint(diff*100) + "%の差があります！\n"
+				body = body + pair + "で" + strconv.FormatFloat(diff*100, 'f', 2, 64) + "%の差があります！\n"
 			}
 
 			to := mail.Address{"あなた", val[1].(string)}
@@ -168,5 +158,7 @@ func main() {
 				log.Fatal(err)
 			}
 		}
+
+		time.Sleep(10 * time.Second)
 	}
 }
