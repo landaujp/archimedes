@@ -11,6 +11,7 @@ setup:
 	go get github.com/golang/lint/golint
 	go get golang.org/x/tools/cmd/goimports
 	go get github.com/Songmu/make2help/cmd/make2help
+	go get github.com/jteeuwen/go-bindata/...
 
 # テストを実行する
 ## Run tests
@@ -24,7 +25,7 @@ deps: setup
 
 ## Update dependencies
 update: setup
-	glide udpate
+	glide up
 
 ## Lint
 lint: setup
@@ -43,8 +44,8 @@ bin/%: cmd/%/main.go deps
 
 ## build binaries for Mac
 darwin-build: cmd/last/main.go cmd/depth/main.go deps
-	GOOS=darwin GOARCH=amd64 CGO_ENABLED=0 go generate cmd/last/main.go  &&  go build -ldflags "$(LDFLGAS)" -o bin/darwin-amd64/last  cmd/last/main.go  cmd/last/bindata.go
-	GOOS=darwin GOARCH=amd64 CGO_ENABLED=0 go generate cmd/depth/main.go &&  go build -ldflags "$(LDFLGAS)" -o bin/darwin-amd64/depth cmd/depth/main.go cmd/depth/bindata.go
+	go generate cmd/last/main.go  && GOOS=darwin GOARCH=amd64 CGO_ENABLED=0 go build -ldflags "$(LDFLGAS)" -o bin/darwin-amd64/last  cmd/last/main.go  cmd/last/bindata.go
+	go generate cmd/depth/main.go && GOOS=darwin GOARCH=amd64 CGO_ENABLED=0 go build -ldflags "$(LDFLGAS)" -o bin/darwin-amd64/depth cmd/depth/main.go cmd/depth/bindata.go
 
 ## build binaries for Linux
 linux-build: cmd/last/main.go cmd/depth/main.go deps
