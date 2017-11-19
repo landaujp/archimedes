@@ -43,14 +43,18 @@ bin/%: cmd/%/main.go deps
 	go generate $< && go build -ldflags "$(LDFLGAS)" -o $@ $< cmd/$*/bindata.go
 
 ## build binaries for Mac
-darwin-build: cmd/last/main.go cmd/depth/main.go deps
-	go generate cmd/last/main.go  && GOOS=darwin GOARCH=amd64 CGO_ENABLED=0 go build -ldflags "$(LDFLGAS)" -o bin/darwin-amd64/last  cmd/last/main.go  cmd/last/bindata.go
+darwin-build: cmd/check/main.go cmd/depth/main.go cmd/last/main.go cmd/mail/main.go deps
+	go generate cmd/check/main.go && GOOS=darwin GOARCH=amd64 CGO_ENABLED=0 go build -ldflags "$(LDFLGAS)" -o bin/darwin-amd64/check cmd/check/main.go cmd/check/bindata.go
 	go generate cmd/depth/main.go && GOOS=darwin GOARCH=amd64 CGO_ENABLED=0 go build -ldflags "$(LDFLGAS)" -o bin/darwin-amd64/depth cmd/depth/main.go cmd/depth/bindata.go
+	go generate cmd/last/main.go  && GOOS=darwin GOARCH=amd64 CGO_ENABLED=0 go build -ldflags "$(LDFLGAS)" -o bin/darwin-amd64/last  cmd/last/main.go  cmd/last/bindata.go
+	go generate cmd/mail/main.go  && GOOS=darwin GOARCH=amd64 CGO_ENABLED=0 go build -ldflags "$(LDFLGAS)" -o bin/darwin-amd64/mail  cmd/mail/main.go  cmd/mail/bindata.go
 
 ## build binaries for Linux
-linux-build: cmd/last/main.go cmd/depth/main.go deps
-	go generate cmd/last/main.go  && GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -ldflags "$(LDFLGAS)" -o bin/linux-amd64/last  cmd/last/main.go  cmd/last/bindata.go
+linux-build: cmd/check/main.go cmd/depth/main.go cmd/last/main.go cmd/mail/main.go deps
+	go generate cmd/check/main.go && GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -ldflags "$(LDFLGAS)" -o bin/linux-amd64/check cmd/check/main.go cmd/check/bindata.go
 	go generate cmd/depth/main.go && GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -ldflags "$(LDFLGAS)" -o bin/linux-amd64/depth cmd/depth/main.go cmd/depth/bindata.go
+	go generate cmd/last/main.go  && GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -ldflags "$(LDFLGAS)" -o bin/linux-amd64/last  cmd/last/main.go  cmd/last/bindata.go
+	go generate cmd/mail/main.go  && GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -ldflags "$(LDFLGAS)" -o bin/linux-amd64/mail  cmd/mail/main.go  cmd/mail/bindata.go
 
 ## Show help
 help:

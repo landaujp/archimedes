@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/BurntSushi/toml"
+	"github.com/garyburd/redigo/redis"
 	_ "github.com/go-sql-driver/mysql"
 )
 
@@ -47,6 +48,13 @@ func main() {
 	}
 	defer db.Close()
 
+	dboption := redis.DialDatabase(0)
+	con, err := redis.Dial("tcp", ":6379", dboption)
+	if err != nil {
+		// handle error
+	}
+	defer con.Close()
+
 	for {
 		time.Sleep(10 * time.Second) // 2秒待つ
 
@@ -83,7 +91,7 @@ func main() {
 		}
 
 		// each user
-		for _, val := range users {
+		for user_id, val := range users {
 			notices := map[string]float64{}
 			var border1 = val[0].(float64)
 			// var email = val[1].(string)
@@ -96,8 +104,15 @@ func main() {
 					// fmt.Println(pair, diff, border1, email)
 
 					// Check Redis
+					key := strconv.Itoa(user_id) + ":" + strconv.FormatFloat(border1, 'f', 6, 64) + ":" + pair
+					exists, _ := redis.Bool(con.Do("EXISTS", key))
+					if exists {
+						continue
+					}
 
 					// insert Redis
+					con.Do("SET", key, 1)
+					con.Do("EXPIRE", key, 60)
 
 					// set notices(map)
 					notices[pair] = diff
