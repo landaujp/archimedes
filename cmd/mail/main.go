@@ -2,9 +2,13 @@ package main
 
 import (
 	"database/sql"
+	"encoding/base64"
 	"fmt"
 	"log"
+	"net/mail"
+	"net/smtp"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/BurntSushi/toml"
@@ -31,6 +35,12 @@ func diffRate(a float64, b float64) float64 {
 	}
 }
 
+func encodeRFC2047(String string) string {
+	// use mail's rfc2047 to encode any string
+	addr := mail.Address{String, ""}
+	return strings.Trim(addr.String(), " <>")
+}
+
 func main() {
 
 	var config Config
@@ -41,6 +51,12 @@ func main() {
 		panic(err)
 	}
 
+	// c, err := smtp.Dial("localhost:25")
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
+	from := mail.Address{"アービトラージ", "arbitrage@landau.jp"}
+
 	db, err := sql.Open("mysql", config.DB.User+":"+config.DB.Password+"@tcp("+config.DB.Host+":"+strconv.Itoa(config.DB.Port)+")/"+config.DB.Database+"?parseTime=true&loc=Asia%2FTokyo")
 	if err != nil {
 		panic(err.Error())
@@ -48,7 +64,7 @@ func main() {
 	defer db.Close()
 
 	for {
-		time.Sleep(10 * time.Second) // 2秒待つ
+		time.Sleep(5 * time.Second) // 2秒待つ
 
 		rows, err := db.Query("SELECT exchange1, exchange2, diff FROM alert")
 		if err != nil {
@@ -86,6 +102,7 @@ func main() {
 		for _, val := range users {
 			notices := map[string]float64{}
 			var border1 = val[0].(float64)
+
 			// var email = val[1].(string)
 
 			// each exchange
@@ -104,11 +121,45 @@ func main() {
 				}
 			}
 			// Send Mail using notices(map)
-			var mailText string
+			var body string
 			for pair, diff := range notices {
-				mailText = mailText + pair + "で" + fmt.Sprint(diff*100) + "%の差があります！\n"
+				body = body + pair + "で" + fmt.Sprint(diff*100) + "%の差があります！\n"
 			}
-			fmt.Println(mailText)
+			fmt.Println(body)
+
+			to := mail.Address{"あなた", val[2].(string)}
+			title := "差が発生しました！"
+
+			// body := "报表内容一切正常"
+
+			header := make(map[string]string)
+			header["From"] = from.String()
+			header["To"] = to.String()
+			header["Subject"] = encodeRFC2047(title)
+			header["MIME-Version"] = "1.0"
+			header["Content-Type"] = "text/plain; charset=\"utf-8\""
+			header["Content-Transfer-Encoding"] = "base64"
+
+			message := ""
+			for k, v := range header {
+				message += fmt.Sprintf("%s: %s\r\n", k, v)
+			}
+			message += "\r\n" + base64.StdEncoding.EncodeToString([]byte(body))
+
+			// Connect to the server, authenticate, set the sender and recipient,
+			// and send the email all in one step.
+			err := smtp.SendMail(
+				"127.0.0.1:25",
+				nil,
+				from.Address,
+				[]string{to.Address},
+				[]byte(message),
+				//[]byte("This is the email body."),
+			)
+			if err != nil {
+				log.Fatal(err)
+			}
+			fmt.Println(val[2].(string) + "にメール送りました")
 		}
 	}
 }
