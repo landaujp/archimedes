@@ -1,5 +1,5 @@
 hash: 73e55401af4825cbe1a2c2b25f4dfb2ec6647b3d98e04e1ffaf05c44fbc4256a
-updated: 2017-11-17T17:28:52.436145+09:00
+updated: 2017-11-19T13:17:11.924985683+09:00
 imports:
 - name: github.com/bitly/go-simplejson
   version: aabad6e819789e569bd6aabf444c935aa9ba1e44
@@ -8,6 +8,7 @@ imports:
 - name: github.com/garyburd/redigo
   version: 47dc60e71eed504e3ef8e77ee3c6fe720f3be57f
   subpackages:
+  - internal
   - redis
 - name: github.com/go-sql-driver/mysql
   version: a0583e0143b1624142adab07e0e97fe106d99561

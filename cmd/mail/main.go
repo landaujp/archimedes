@@ -52,11 +52,7 @@ func main() {
 		panic(err)
 	}
 
-	// c, err := smtp.Dial("localhost:25")
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
-	from := mail.Address{"アービトラージ", "arbitrage@landau.jp"}
+	from := mail.Address{"アービトラージ", "admin@tk2-249-34013.vs.sakura.ne.jp"}
 
 	db, err := sql.Open("mysql", config.DB.User+":"+config.DB.Password+"@tcp("+config.DB.Host+":"+strconv.Itoa(config.DB.Port)+")/"+config.DB.Database+"?parseTime=true&loc=Asia%2FTokyo")
 	if err != nil {
@@ -65,7 +61,7 @@ func main() {
 	defer db.Close()
 
 	dboption := redis.DialDatabase(0)
-	con, err := redis.Dial("tcp", ":6379", dboption)
+	con, err := redis.Dial("tcp", "127.0.0.1:6379", dboption)
 	if err != nil {
 		// handle error
 	}
@@ -142,7 +138,7 @@ func main() {
 			}
 			fmt.Println(body)
 
-			to := mail.Address{"あなた", val[2].(string)}
+			to := mail.Address{"あなた", val[1].(string)}
 			title := "差が発生しました！"
 
 			// body := "报表内容一切正常"
@@ -169,12 +165,11 @@ func main() {
 				from.Address,
 				[]string{to.Address},
 				[]byte(message),
-				//[]byte("This is the email body."),
 			)
 			if err != nil {
 				log.Fatal(err)
 			}
-			fmt.Println(val[2].(string) + "にメール送りました")
+			fmt.Println(val[1].(string) + "にメール送りました")
 		}
 	}
 }
