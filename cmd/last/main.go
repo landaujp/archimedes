@@ -86,7 +86,7 @@ func main() {
 
 	var Etag string
 	for {
-		time.Sleep(2 * time.Second) // 2秒待つ
+		time.Sleep(5 * time.Second) // 2秒待つ
 
 		req, _ := http.NewRequest("GET", url, nil)
 		req.Header.Set("if-none-match", Etag)
