@@ -91,6 +91,22 @@ func (c *Kraken) GetDepth() string {
 	return string(outputJson)
 }
 
+func (c *Kraken) GetBid() int {
+	bids, _ := c.SimpleJson.Get("result").Get("XXBTZJPY").Get("bids").Array()
+	bid := bids[0].([]interface{})
+	res, _ := strconv.Atoi(strings.Split(bid[0].(string), ".")[0])
+
+	return res
+}
+
+func (c *Kraken) GetAsk() int {
+	asks, _ := c.SimpleJson.Get("result").Get("XXBTZJPY").Get("asks").Array()
+	ask := asks[0].([]interface{})
+	res, _ := strconv.Atoi(strings.Split(ask[0].(string), ".")[0])
+
+	return res
+}
+
 func (c *Kraken) SetJson(json *simplejson.Json) {
 	c.SimpleJson = json
 }

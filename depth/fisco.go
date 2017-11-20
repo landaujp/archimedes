@@ -91,6 +91,22 @@ func (c *Fisco) GetDepth() string {
 	return string(outputJson)
 }
 
+func (c *Fisco) GetBid() int {
+	bids, _ := c.SimpleJson.Get("bids").Array()
+	bid := bids[0].([]interface{})
+	v1_64, _ := bid[0].(json.Number).Float64()
+
+	return int(v1_64)
+}
+
+func (c *Fisco) GetAsk() int {
+	asks, _ := c.SimpleJson.Get("asks").Array()
+	ask := asks[0].([]interface{})
+	v1_64, _ := ask[0].(json.Number).Float64()
+
+	return int(v1_64)
+}
+
 func (c *Fisco) SetJson(json *simplejson.Json) {
 	c.SimpleJson = json
 }

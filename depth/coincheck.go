@@ -90,6 +90,22 @@ func (c *Coincheck) GetDepth() string {
 	return string(outputJson)
 }
 
+func (c *Coincheck) GetBid() int {
+	bids, _ := c.SimpleJson.Get("bids").Array()
+	bid := bids[0].([]interface{})
+	v1, _ := strconv.Atoi(strings.Split(bid[0].(string), ".")[0])
+
+	return v1
+}
+
+func (c *Coincheck) GetAsk() int {
+	asks, _ := c.SimpleJson.Get("asks").Array()
+	ask := asks[0].([]interface{})
+	v1, _ := strconv.Atoi(strings.Split(ask[0].(string), ".")[0])
+
+	return v1
+}
+
 func (c *Coincheck) SetJson(json *simplejson.Json) {
 	c.SimpleJson = json
 }

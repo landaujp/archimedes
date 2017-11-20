@@ -90,6 +90,22 @@ func (c *Quoine) GetDepth() string {
 	return string(outputJson)
 }
 
+func (c *Quoine) GetBid() int {
+	bids, _ := c.SimpleJson.Get("buy_price_levels").Array()
+	bid := bids[0].([]interface{})
+	res, _ := strconv.Atoi(strings.Split(bid[0].(string), ".")[0])
+
+	return res
+}
+
+func (c *Quoine) GetAsk() int {
+	asks, _ := c.SimpleJson.Get("sell_price_levels").Array()
+	ask := asks[0].([]interface{})
+	res, _ := strconv.Atoi(strings.Split(ask[0].(string), ".")[0])
+
+	return res
+}
+
 func (c *Quoine) SetJson(json *simplejson.Json) {
 	c.SimpleJson = json
 }

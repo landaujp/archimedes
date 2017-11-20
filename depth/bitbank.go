@@ -91,6 +91,22 @@ func (c *Bitbank) GetDepth() string {
 	return string(outputJson)
 }
 
+func (c *Bitbank) GetBid() int {
+	bids, _ := c.SimpleJson.Get("data").Get("bids").Array()
+	bid := bids[0].([]interface{})
+	res, _ := strconv.Atoi(strings.Split(bid[0].(string), ".")[0])
+
+	return res
+}
+
+func (c *Bitbank) GetAsk() int {
+	asks, _ := c.SimpleJson.Get("data").Get("asks").Array()
+	ask := asks[0].([]interface{})
+	res, _ := strconv.Atoi(strings.Split(ask[0].(string), ".")[0])
+
+	return res
+}
+
 func (c *Bitbank) SetJson(json *simplejson.Json) {
 	c.SimpleJson = json
 }

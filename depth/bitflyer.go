@@ -91,6 +91,22 @@ func (c *Bitflyer) GetDepth() string {
 	return string(outputJson)
 }
 
+func (c *Bitflyer) GetBid() int {
+	bids, _ := c.SimpleJson.Get("bids").Array()
+	bid := bids[0].(map[string]interface{})
+	v1_64, _ := bid["price"].(json.Number).Float64()
+
+	return int(v1_64)
+}
+
+func (c *Bitflyer) GetAsk() int {
+	asks, _ := c.SimpleJson.Get("asks").Array()
+	ask := asks[0].(map[string]interface{})
+	v1_64, _ := ask["price"].(json.Number).Float64()
+
+	return int(v1_64)
+}
+
 func (c *Bitflyer) SetJson(json *simplejson.Json) {
 	c.SimpleJson = json
 }
