@@ -115,7 +115,7 @@ func main() {
 
 					// insert Redis
 					con.Do("SET", key, 1)
-					con.Do("EXPIRE", key, 60)
+					con.Do("EXPIRE", key, 600)
 
 					// set notices(map)
 					notices[pair] = diff
