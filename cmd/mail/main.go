@@ -63,7 +63,7 @@ func main() {
 
 		time.Sleep(10 * time.Second)
 
-		rows, err = db.Query("SELECT id,border1,email FROM users")
+		rows, err := db.Query("SELECT id,border1,email FROM users")
 		if err != nil {
 			log.Fatal(err)
 		}
