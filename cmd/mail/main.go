@@ -26,6 +26,10 @@ type Config struct {
 		Password string
 		Port     int
 	}
+	Gmail struct {
+		Username string
+		Password string
+	}
 }
 
 func encodeRFC2047(String string) string {
@@ -44,6 +48,12 @@ func main() {
 		panic(err)
 	}
 
+	auth := smtp.PlainAuth(
+		"",
+		config.Gmail.Username,
+		config.Gmail.Password,
+		"smtp.gmail.com",
+	)
 	from := mail.Address{"アービトラージ", "admin@tk2-249-34013.vs.sakura.ne.jp"}
 
 	db, err := sql.Open("mysql", config.DB.User+":"+config.DB.Password+"@tcp("+config.DB.Host+":"+strconv.Itoa(config.DB.Port)+")/"+config.DB.Database+"?parseTime=true&loc=Asia%2FTokyo")
@@ -138,8 +148,8 @@ func main() {
 			message += "\r\n" + base64.StdEncoding.EncodeToString([]byte(body))
 
 			err := smtp.SendMail(
-				"127.0.0.1:25",
-				nil,
+				"smtp.gmail.com:587",
+				auth,
 				from.Address,
 				[]string{to.Address},
 				[]byte(message),

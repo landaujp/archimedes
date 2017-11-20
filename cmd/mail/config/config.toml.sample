@@ -4,3 +4,7 @@ database = "dbname"
 user     = "dbuser"
 password = "dbpassword"
 port     = 3306
+
+[Gmail]
+Username = "your-emal-address"
+Password = "password"
