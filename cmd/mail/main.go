@@ -60,21 +60,8 @@ func main() {
 	defer con.Close()
 
 	for {
-		rows, err := db.Query("SELECT exchange1, exchange2, diff FROM alert")
-		if err != nil {
-			log.Fatal(err)
-		}
-		defer rows.Close()
-		ex := map[string]float64{}
-		for rows.Next() {
-			var exchange1 string
-			var exchange2 string
-			var diff float64
-			if err := rows.Scan(&exchange1, &exchange2, &diff); err != nil {
-				log.Fatal(err)
-			}
-			ex[exchange1+"_"+exchange2] = diff
-		}
+
+		time.Sleep(10 * time.Second)
 
 		rows, err = db.Query("SELECT id,border1,email FROM users")
 		if err != nil {
@@ -92,19 +79,18 @@ func main() {
 			users[id] = []interface{}{border1, email}
 		}
 
+		ex, _ := redis.StringMap(con.Do("hGetAll", "alert"))
+
 		// each user
 		for user_id, val := range users {
+
 			notices := map[string]float64{}
-			var border1 = val[0].(float64)
+			border1 := val[0].(float64)
 
-			// var email = val[1].(string)
+			for pair, rate := range ex {
+				diff, _ := strconv.ParseFloat(rate, 5)
 
-			// each exchange
-			for pair, diff := range ex {
-
-				// Hit border1 !!
 				if border1 < diff {
-					// fmt.Println(pair, diff, border1, email)
 
 					// Check Redis
 					key := strconv.Itoa(user_id) + ":" + strconv.FormatFloat(border1, 'f', 6, 64) + ":" + pair
@@ -121,17 +107,21 @@ func main() {
 					notices[pair] = diff
 				}
 			}
+
 			if len(notices) == 0 {
 				continue
 			}
+
 			// Send Mail using notices(map)
 			var body string
 			for pair, diff := range notices {
-				body = body + pair + "で" + strconv.FormatFloat(diff*100, 'f', 2, 64) + "%の差があります！\n"
+				buy := strings.Split(pair, "_")[0]
+				sell := strings.Split(pair, "_")[1]
+				body = body + buy + "の売り板と" + sell + "の買い板で " + strconv.FormatFloat(diff*100, 'f', 2, 64) + "% の差が発生しています\n"
 			}
 
 			to := mail.Address{"あなた", val[1].(string)}
-			title := "差が発生しました！"
+			title := "差が発生しました"
 
 			header := make(map[string]string)
 			header["From"] = from.String()
@@ -158,7 +148,5 @@ func main() {
 				log.Fatal(err)
 			}
 		}
-
-		time.Sleep(10 * time.Second)
 	}
 }
