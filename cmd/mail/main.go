@@ -130,6 +130,8 @@ func main() {
 				body = body + buy + "の売り板と" + sell + "の買い板で " + strconv.FormatFloat(diff*100, 'f', 2, 64) + "% の差が発生しています\n"
 			}
 
+			body += "\n\n全取引所のリアルタイム板情報 https://kepler.landau.jp/"
+
 			to := mail.Address{"あなた", val[1].(string)}
 			title := "差が発生しました"
 
