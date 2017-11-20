@@ -104,7 +104,7 @@ func main() {
 					continue
 				}
 				rate := float64(bids[ib])/float64(asks[ia]) - 1
-				con.Send("SET", "alert:"+ex_a+"_"+ex_b, rate)
+				con.Send("HSET", "alert", ""+ex_a+"_"+ex_b, rate)
 			}
 		}
 		con.Do("EXEC")
