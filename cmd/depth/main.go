@@ -11,6 +11,7 @@ import (
 
 	"github.com/BurntSushi/toml"
 	simplejson "github.com/bitly/go-simplejson"
+	"github.com/garyburd/redigo/redis"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/landaujp/archimedes/depth"
 )
@@ -28,6 +29,8 @@ type Config struct {
 }
 type Exchange interface {
 	GetDepth() string
+	GetBid() int
+	GetAsk() int
 	SetJson(*simplejson.Json)
 }
 
@@ -46,6 +49,13 @@ func main() {
 		panic(err.Error())
 	}
 	defer db.Close()
+
+	dboption := redis.DialDatabase(0)
+	con, err := redis.Dial("tcp", "127.0.0.1:6379", dboption)
+	if err != nil {
+		// handle error
+	}
+	defer con.Close()
 
 	flag.Parse()
 	argument := flag.Args()[0]
@@ -111,6 +121,11 @@ func main() {
 		if err != nil {
 			panic(err.Error())
 		}
+
+		con.Do("SET", argument+":depth", jsonString)
+		con.Do("SET", argument+":bid", ex.GetBid())
+		con.Do("SET", argument+":ask", ex.GetAsk())
+
 		resp.Body.Close()
 	}
 }

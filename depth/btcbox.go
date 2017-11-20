@@ -91,6 +91,22 @@ func (c *Btcbox) GetDepth() string {
 	return string(outputJson)
 }
 
+func (c *Btcbox) GetBid() int {
+	bids, _ := c.SimpleJson.Get("bids").Array()
+	bid := bids[0].([]interface{})
+	v1_64, _ := bid[0].(json.Number).Float64()
+
+	return int(v1_64)
+}
+
+func (c *Btcbox) GetAsk() int {
+	asks, _ := c.SimpleJson.Get("asks").Array()
+	ask := asks[0].([]interface{})
+	v1_64, _ := ask[0].(json.Number).Float64()
+
+	return int(v1_64)
+}
+
 func (c *Btcbox) SetJson(json *simplejson.Json) {
 	c.SimpleJson = json
 }
