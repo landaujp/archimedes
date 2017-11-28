@@ -71,7 +71,7 @@ func main() {
 
 	for {
 
-		time.Sleep(10 * time.Second)
+		time.Sleep(30 * time.Second)
 
 		rows, err := db.Query("SELECT id,border1,email FROM users")
 		if err != nil {
