@@ -1,15 +1,12 @@
 package main
 
 import (
-	"database/sql"
 	"flag"
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"strconv"
 	"time"
 
-	"github.com/BurntSushi/toml"
 	simplejson "github.com/bitly/go-simplejson"
 	"github.com/garyburd/redigo/redis"
 	_ "github.com/go-sql-driver/mysql"
@@ -35,20 +32,6 @@ type Exchange interface {
 }
 
 func main() {
-
-	var config Config
-
-	data, _ := Asset("config/config.toml")
-	_, err := toml.Decode(string(data), &config)
-	if err != nil {
-		panic(err)
-	}
-
-	db, err := sql.Open("mysql", config.DB.User+":"+config.DB.Password+"@tcp("+config.DB.Host+":"+strconv.Itoa(config.DB.Port)+")/"+config.DB.Database+"?parseTime=true&loc=Asia%2FTokyo")
-	if err != nil {
-		panic(err.Error())
-	}
-	defer db.Close()
 
 	dboption := redis.DialDatabase(0)
 	con, err := redis.Dial("tcp", "127.0.0.1:6379", dboption)
@@ -117,14 +100,12 @@ func main() {
 		jsonObj, _ := simplejson.NewJson(body)
 		ex.SetJson(jsonObj)
 		jsonString := ex.GetDepth()
-		_, err = db.Exec("UPDATE market SET depth = ? WHERE exchange = '"+argument+"' ", jsonString)
-		if err != nil {
-			panic(err.Error())
-		}
 
 		con.Do("SET", argument+":depth", jsonString)
 		con.Do("SET", argument+":bid", ex.GetBid())
 		con.Do("SET", argument+":ask", ex.GetAsk())
+		con.Do("EXPIRE", argument+":bid", 60)
+		con.Do("EXPIRE", argument+":ask", 60)
 
 		resp.Body.Close()
 	}
