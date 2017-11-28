@@ -19,14 +19,6 @@ type Config struct {
 	}
 }
 
-func diffRate(a float64, b float64) float64 {
-	if a < b {
-		return (b / a) - 1
-	} else {
-		return (a / b) - 1
-	}
-}
-
 var exs = []string{"coincheck", "bitflyer", "bitbank", "btcbox", "fisco", "zaif", "quoine", "kraken"}
 
 func main() {
@@ -54,7 +46,7 @@ func main() {
 					continue
 				}
 				if bids[ib] != 0 && asks[ia] != 0 {
-					rate := float64(bids[ib])/float64(asks[ia]) - 1
+					rate := 100 * (float64(bids[ib])/float64(asks[ia]) - 1)
 					con.Send("HSET", "alert", ex_a+"_"+ex_b, rate)
 				} else {
 					con.Send("HDEL", "alert", ex_a+"_"+ex_b)
