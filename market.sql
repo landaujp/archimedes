@@ -34,6 +34,16 @@ CREATE TABLE `coincheck` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+-- Create syntax for TABLE 'diff_log'
+CREATE TABLE `diff_log` (
+  `ex_ask` varchar(255) NOT NULL DEFAULT '',
+  `ex_bid` varchar(255) NOT NULL DEFAULT '',
+  `ask` float(10,1) NOT NULL,
+  `bid` float(10,1) NOT NULL,
+  `rate` float(3,2) NOT NULL,
+  `created_at` datetime NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 -- Create syntax for TABLE 'fisco'
 CREATE TABLE `fisco` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
