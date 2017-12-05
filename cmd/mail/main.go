@@ -73,7 +73,7 @@ func main() {
 
 		time.Sleep(60 * time.Second)
 
-		rows, err := db.Query("SELECT id,border1,email FROM users")
+		rows, err := db.Query("SELECT s.id, s.border, u.email FROM settings s INNER JOIN users u ON (s.user_id = u.id)")
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -81,12 +81,12 @@ func main() {
 		users := make(map[int][]interface{})
 		for rows.Next() {
 			var id int
-			var border1 float64
+			var border float64
 			var email string
-			if err := rows.Scan(&id, &border1, &email); err != nil {
+			if err := rows.Scan(&id, &border, &email); err != nil {
 				log.Fatal(err)
 			}
-			users[id] = []interface{}{border1, email}
+			users[id] = []interface{}{border, email}
 		}
 
 		ex, _ := redis.StringMap(con.Do("hGetAll", "alert"))
