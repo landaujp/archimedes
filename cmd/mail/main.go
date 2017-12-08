@@ -73,29 +73,31 @@ func main() {
 
 		time.Sleep(60 * time.Second)
 
-		rows, err := db.Query("SELECT s.id, s.border, u.email FROM settings s INNER JOIN users u ON (s.user_id = u.id)")
+		rows, err := db.Query("SELECT u.id, s.border, u.email FROM settings s INNER JOIN users u ON (s.user_id = u.id)")
 		if err != nil {
 			log.Fatal(err)
 		}
 		defer rows.Close()
-		users := make(map[int][]interface{})
+
+		var users []interface{}
 		for rows.Next() {
-			var id int
+			var user_id int
 			var border float64
 			var email string
-			if err := rows.Scan(&id, &border, &email); err != nil {
+			if err := rows.Scan(&user_id, &border, &email); err != nil {
 				log.Fatal(err)
 			}
-			users[id] = []interface{}{border, email}
+			users = append(users, []interface{}{user_id, border, email})
 		}
 
 		ex, _ := redis.StringMap(con.Do("hGetAll", "alert"))
 
 		// each user
-		for user_id, val := range users {
+		for _, val := range users {
 
 			notices := map[string]float64{}
-			border1 := val[0].(float64)
+			user_id := val.([]interface{})[0].(int)
+			border1 := val.([]interface{})[1].(float64)
 
 			for pair, rate := range ex {
 				diff, _ := strconv.ParseFloat(rate, 5)
@@ -132,7 +134,7 @@ func main() {
 
 			body += "\n\n全取引所のリアルタイム板情報 https://kepler.landau.jp/"
 
-			to := mail.Address{"あなた", val[1].(string)}
+			to := mail.Address{"あなた", val.([]interface{})[2].(string)}
 			title := "差が発生しました"
 
 			header := make(map[string]string)
